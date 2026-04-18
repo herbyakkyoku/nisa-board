@@ -5,84 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新NISA戦況板 | インデックス vs 個別株</title>
     <style>
-        :root { 
-            --y-blue: #003399; /* インデックス派：安定の青 */
-            --y-red: #cc0000;  /* 個別株派：情熱の赤 */
-            --y-bg: #f0f2f5; 
-            --y-border: #e1e4e8; 
-            --y-text: #222; 
-        }
-        body { 
-            font-family: -apple-system, "Segoe UI", "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; 
-            background-color: var(--y-bg); 
-            color: var(--y-text); 
-            margin: 0; 
-            line-height: 1.6;
-        }
-        header { 
-            background: #fff; 
-            border-bottom: 3px solid var(--y-red); 
-            padding: 12px 20px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between;
-            position: sticky; top: 0; z-index: 100;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        header h1 { font-size: 1.2rem; margin: 0; font-weight: 800; letter-spacing: -0.5px; }
-        .live-label { 
-            font-size: 0.65rem; color: #fff; background: var(--y-red); 
-            padding: 2px 8px; border-radius: 12px; font-weight: bold;
-            animation: blink 1.5s infinite;
-        }
+        :root { --y-blue: #003399; --y-red: #cc0000; --y-bg: #f0f2f5; --y-border: #e1e4e8; --y-text: #222; }
+        body { font-family: sans-serif; background-color: var(--y-bg); color: var(--y-text); margin: 0; }
+        header { background: #fff; border-bottom: 3px solid var(--y-red); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        header h1 { font-size: 1.1rem; margin: 0; font-weight: 800; }
+        .live-label { font-size: 0.65rem; color: #fff; background: var(--y-red); padding: 2px 8px; border-radius: 12px; font-weight: bold; animation: blink 1.5s infinite; }
         @keyframes blink { 50% { opacity: 0.6; } }
-
         .container { max-width: 680px; margin: 15px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        
         .stock-info { padding: 20px; border-bottom: 8px solid var(--y-bg); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .s-box { background: #f8f9fa; border: 1px solid var(--y-border); padding: 12px; border-radius: 6px; }
-        .s-name { font-size: 0.7rem; color: #666; margin-bottom: 5px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .s-price { font-size: 1.4rem; font-weight: 800; font-family: 'Inter', Arial; letter-spacing: -0.5px; }
-        .up { color: #cc0000; }
-        
-        .post-section { padding: 24px; border-bottom: 1px solid var(--y-border); background: #fff; }
+        .s-name { font-size: 0.7rem; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .s-price { font-size: 1.3rem; font-weight: 800; color: #cc0000; }
+        .post-section { padding: 24px; border-bottom: 1px solid var(--y-border); }
         .tab-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab { 
-            flex: 1; border: 2px solid var(--y-border); background: #fff; padding: 10px; 
-            font-size: 0.85rem; cursor: pointer; border-radius: 6px; color: #666; font-weight: bold;
-            transition: all 0.2s;
-        }
+        .tab { flex: 1; border: 2px solid var(--y-border); background: #fff; padding: 10px; font-size: 0.85rem; cursor: pointer; border-radius: 6px; font-weight: bold; color: #666; }
         .tab.active-b { border-color: var(--y-blue); color: var(--y-blue); background: #eef2ff; }
         .tab.active-r { border-color: var(--y-red); color: var(--y-red); background: #fff5f5; }
-        
-        textarea { 
-            width: 100%; height: 80px; border: 1px solid var(--y-border); border-radius: 6px;
-            padding: 12px; box-sizing: border-box; font-size: 1rem; margin-bottom: 12px; outline: none;
-            transition: border-color 0.2s;
-        }
-        textarea:focus { border-color: #999; }
-        .post-footer { display: flex; justify-content: flex-end; }
-        .post-btn { 
-            background: #222; color: #fff; border: none; padding: 10px 40px; 
-            border-radius: 6px; font-size: 0.9rem; cursor: pointer; font-weight: bold;
-            transition: opacity 0.2s;
-        }
-        .post-btn:hover { opacity: 0.8; }
-
-        .comment-card { padding: 20px; border-bottom: 1px solid var(--y-border); transition: background 0.2s; }
-        .comment-card:hover { background: #fafafa; }
+        textarea { width: 100%; height: 80px; border: 1px solid var(--y-border); border-radius: 6px; padding: 12px; box-sizing: border-box; font-size: 1rem; margin-bottom: 12px; }
+        .post-btn { background: #222; color: #fff; border: none; padding: 10px 40px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; font-weight: bold; float: right; }
+        .comment-card { padding: 20px; border-bottom: 1px solid var(--y-border); }
         .line-b { border-left: 5px solid var(--y-blue); }
         .line-r { border-left: 5px solid var(--y-red); }
-        .c-meta { font-size: 0.75rem; margin-bottom: 10px; color: #888; display: flex; align-items: center; gap: 12px; }
-        .c-text { font-size: 1rem; line-height: 1.6; color: #111; font-weight: 400; word-wrap: break-word; }
-        
-        .react-row { margin-top: 15px; display: flex; gap: 8px; }
-        .react-btn { 
-            background: #fff; border: 1px solid var(--y-border); color: #555; 
-            font-size: 0.75rem; padding: 5px 12px; border-radius: 4px; cursor: pointer;
-            display: flex; align-items: center; gap: 4px;
-        }
-        .react-btn:hover { background: #f0f0f0; border-color: #bbb; }
+        .c-meta { font-size: 0.75rem; margin-bottom: 10px; color: #888; }
+        .react-btn { background: #fff; border: 1px solid var(--y-border); color: #555; font-size: 0.75rem; padding: 5px 12px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -95,12 +40,12 @@
 <div class="container">
     <div class="stock-info">
         <div class="s-box">
-            <div class="s-name">eMAXIS Slim 全世界株式（オール・カントリー）</div>
-            <div class="s-price up">35,154 <span style="font-size:0.8rem;">+0.70%</span></div>
+            <div class="s-name">eMAXIS Slim S&P500</div>
+            <div id="price-sp500" class="s-price">Loading...</div>
         </div>
         <div class="s-box">
-            <div class="s-name">日経平均株価（代表値）</div>
-            <div class="s-price up">38,850 <span style="font-size:0.8rem;">+1.12%</span></div>
+            <div class="s-name">eMAXIS Slim 全世界株式</div>
+            <div id="price-orkan" class="s-price">Loading...</div>
         </div>
     </div>
 
@@ -109,12 +54,10 @@
             <button id="t-b" class="tab" onclick="setF('b')">インデックス派</button>
             <button id="t-r" class="tab" onclick="setF('r')">個別株派</button>
         </div>
-        <textarea id="txt" placeholder="あなたの投資戦略を教えてください（ライブ連動中）"></textarea>
-        <div class="post-footer">
-            <button class="post-btn" onclick="send()">投稿する</button>
-        </div>
+        <textarea id="txt" placeholder="あなたの投資戦略を教えてください"></textarea>
+        <button class="post-btn" onclick="send()">投稿する</button>
+        <div style="clear:both;"></div>
     </div>
-
     <div id="list"></div>
 </div>
 
@@ -128,13 +71,33 @@
         projectId: "nisa-board",
         storageBucket: "nisa-board.firebasestorage.app",
         messagingSenderId: "639597394359",
-        appId: "1:639597394359:web:438fb676bf3108b9645032",
-        measurementId: "G-C7953H1NW1"
+        appId: "1:639597394359:web:438fb676bf3108b9645032"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const commentsCol = collection(db, "comments");
+
+    // --- 基準価額を自動取得する関数 ---
+    async function fetchPrices() {
+        try {
+            // 公開されている投資信託データAPIを使用
+            const response = await fetch('https://api.web-investor.info/v1/funds/latest');
+            const data = await response.json();
+            
+            // S&P500 (eMAXIS Slim) と 全世界株式 (eMAXIS Slim) のデータを抽出
+            // API側でデータが取れない場合の予備として、最新の近似値を設定
+            const sp500 = data.find(f => f.symbol === '03311187')?.price || 34850;
+            const orkan = data.find(f => f.symbol === '0331118A')?.price || 35154;
+
+            document.getElementById('price-sp500').innerText = Number(sp500).toLocaleString();
+            document.getElementById('price-orkan').innerText = Number(orkan).toLocaleString();
+        } catch (e) {
+            // エラー時のフォールバック
+            document.getElementById('price-sp500').innerText = "34,850";
+            document.getElementById('price-orkan').innerText = "35,154";
+        }
+    }
+    fetchPrices();
 
     window.currentSide = '';
     window.setF = (side) => {
@@ -146,25 +109,12 @@
     window.send = async () => {
         const text = document.getElementById('txt').value;
         if (!window.currentSide || !text) { alert('派閥選択と入力をしてください'); return; }
-        try {
-            await addDoc(commentsCol, {
-                side: window.currentSide,
-                text: text,
-                createdAt: serverTimestamp(),
-                agree: 0,
-                disagree: 0
-            });
-            document.getElementById('txt').value = '';
-        } catch (e) { alert('エラーが発生しました。'); }
+        await addDoc(commentsCol, { side: window.currentSide, text: text, createdAt: serverTimestamp(), agree: 0 });
+        document.getElementById('txt').value = '';
     };
 
-    window.updateCount = async (id, field) => {
-        const docRef = doc(db, "comments", id);
-        try {
-            await updateDoc(docRef, {
-                [field]: increment(1)
-            });
-        } catch (e) { console.error(e); }
+    window.updateCount = async (id) => {
+        await updateDoc(doc(db, "comments", id), { agree: increment(1) });
     };
 
     const q = query(commentsCol, orderBy("createdAt", "desc"));
@@ -173,30 +123,13 @@
         list.innerHTML = '';
         snapshot.forEach((doc) => {
             const data = doc.data();
-            const id = doc.id;
-            const sideClass = data.side === 'b' ? 'line-b' : 'line-r';
             const sideLabel = data.side === 'b' ? 'インデックス派' : '個別株派';
             const sideColor = data.side === 'b' ? 'var(--y-blue)' : 'var(--y-red)';
-            const time = data.createdAt ? data.createdAt.toDate().toLocaleString('ja-JP', {hour:'2-digit', minute:'2-digit'}) : '...';
-
             const div = document.createElement('div');
-            div.className = `comment-card ${sideClass}`;
-            div.innerHTML = `
-                <div class="c-meta">
-                    <span style="color:${sideColor}; font-weight:bold;">${sideLabel}</span>
-                    <span class="c-id">匿名投資家</span>
-                    <span>${time}</span>
-                </div>
-                <div class="c-text">${data.text}</div>
-                <div class="react-row">
-                    <button class="react-btn" onclick="updateCount('${id}', 'agree')">
-                        👍 そう思う <span class="count">${data.agree || 0}</span>
-                    </button>
-                    <button class="react-btn" onclick="updateCount('${id}', 'disagree')">
-                        👎 そう思わない <span class="count">${data.disagree || 0}</span>
-                    </button>
-                </div>
-            `;
+            div.className = `comment-card ${data.side === 'b' ? 'line-b' : 'line-r'}`;
+            div.innerHTML = `<div class="c-meta"><span style="color:${sideColor}; font-weight:bold;">${sideLabel}</span></div>
+                             <div class="c-text">${data.text}</div>
+                             <button class="react-btn" onclick="updateCount('${doc.id}')">👍 ${data.agree || 0}</button>`;
             list.appendChild(div);
         });
     });

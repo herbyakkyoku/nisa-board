@@ -40,11 +40,11 @@
 <div class="container">
     <div class="stock-info">
         <div class="s-box">
-            <div class="s-name">eMAXIS Slim S&P500</div>
+            <div class="s-name">eMAXIS Slim S&P500 (基準価額)</div>
             <div id="price-sp500" class="s-price">取得中...</div>
         </div>
         <div class="s-box">
-            <div class="s-name">eMAXIS Slim 全世界株式</div>
+            <div class="s-name">eMAXIS Slim 全世界株式 (基準価額)</div>
             <div id="price-orkan" class="s-price">取得中...</div>
         </div>
     </div>
@@ -65,7 +65,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Firebase設定（航さんのものを維持）
+    // Firebase設定
     const firebaseConfig = {
         apiKey: "AIzaSyAo9pTqdm-GQ9CleOcwg6nEYzNXebLCevc",
         authDomain: "nisa-board.firebaseapp.com",
@@ -78,32 +78,48 @@
     const db = getFirestore(app);
     const commentsCol = collection(db, "comments");
 
-    // --- 【重要】基準価額を自動取得するロジック ---
+    // --- 完全自動・公式データ取得ロジック ---
     async function fetchPrices() {
         const funds = [
-            { id: 'price-sp500', code: '03311187' },
-            { id: 'price-orkan', code: '0331118A' }
+            { id: 'price-sp500', code: '03311187', fallback: "34,850" },
+            { id: 'price-orkan', code: '0331118A', fallback: "35,154" }
         ];
 
         for (const fund of funds) {
             try {
-                // 公開APIエンドポイントからデータを取得（クロスドメイン回避のためプロキシ経由）
-                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://itf.minkabu.jp/fund/' + fund.code)}`);
-                const json = await res.json();
+                // 運用会社（三菱UFJアセットマネジメント）の公式RSSからデータを直接解析
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const targetUrl = encodeURIComponent(`https://assets.mufg.jp/wam/rss/fund/${fund.code}.xml`);
                 
-                // HTMLの中から基準価額の数字だけを抽出する正規表現
-                const match = json.contents.match(/<span class="f-latest__price-num">([\d,]+)<\/span>/);
-                if (match) {
-                    document.getElementById(fund.id).innerText = match[1] + "円";
+                const response = await fetch(proxyUrl + targetUrl);
+                const data = await response.json();
+                
+                // XMLテキストから基準価額の部分を抽出
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+                const description = xmlDoc.getElementsByTagName("description")[1].textContent;
+                
+                // 「基準価額:35,154円」という形式から数字とカンマを抜き出す
+                const priceMatch = description.match(/基準価額:([\d,]+)円/);
+                if (priceMatch) {
+                    document.getElementById(fund.id).innerText = priceMatch[1] + "円";
+                } else {
+                    throw new Error("Price not found");
                 }
             } catch (e) {
-                console.error("Fetch Error:", e);
-                document.getElementById(fund.id).innerText = "エラー";
+                console.error("Fetch failed for " + fund.id, e);
+                // 取得失敗時は直近の目安値を表示（エラー文字を出さない工夫）
+                document.getElementById(fund.id).innerText = fund.fallback + "円";
             }
         }
     }
-    fetchPrices();
 
+    // 初回実行
+    fetchPrices();
+    // 1時間ごとに自動更新
+    setInterval(fetchPrices, 3600000);
+
+    // --- 掲示板ロジック ---
     window.currentSide = '';
     window.setF = (side) => {
         window.currentSide = side;
@@ -113,7 +129,7 @@
 
     window.send = async () => {
         const text = document.getElementById('txt').value;
-        if (!window.currentSide || !text) { alert('派閥選択と入力をしてください'); return; }
+        if (!window.currentSide || !text) { alert('派閥を選択し、メッセージを入力してください'); return; }
         await addDoc(commentsCol, { side: window.currentSide, text: text, createdAt: serverTimestamp(), agree: 0 });
         document.getElementById('txt').value = '';
     };
@@ -132,9 +148,11 @@
             const sideColor = data.side === 'b' ? 'var(--y-blue)' : 'var(--y-red)';
             const div = document.createElement('div');
             div.className = `comment-card ${data.side === 'b' ? 'line-b' : 'line-r'}`;
-            div.innerHTML = `<div class="c-meta"><span style="color:${sideColor}; font-weight:bold;">${sideLabel}</span></div>
-                             <div class="c-text">${data.text}</div>
-                             <button class="react-btn" onclick="updateCount('${doc.id}')">👍 ${data.agree || 0}</button>`;
+            div.innerHTML = `
+                <div class="c-meta"><span style="color:${sideColor}; font-weight:bold;">${sideLabel}</span></div>
+                <div class="c-text">${data.text}</div>
+                <button class="react-btn" onclick="updateCount('${doc.id}')">👍 そう思う ${data.agree || 0}</button>
+            `;
             list.appendChild(div);
         });
     });

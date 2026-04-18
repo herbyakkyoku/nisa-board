@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新NISA戦況板 | オルカン vs S&P500</title>
+    <title>新NISA戦況板 | インデックス vs 個別株</title>
     <style>
         :root { 
-            --y-blue: #003399; /* 信頼感のある濃い青 */
-            --y-red: #cc0000;  /* 落ち着いた赤 */
+            --y-blue: #003399; /* インデックス派：安定の青 */
+            --y-red: #cc0000;  /* 個別株派：情熱の赤 */
             --y-bg: #f0f2f5; 
             --y-border: #e1e4e8; 
             --y-text: #222; 
@@ -88,28 +88,28 @@
 <body>
 
 <header>
-    <h1>新NISA戦況板</h1>
+    <h1>新NISA戦況板 | インデックス vs 個別株</h1>
     <div class="live-label">LIVE STREAMING</div>
 </header>
 
 <div class="container">
     <div class="stock-info">
         <div class="s-box">
-            <div class="s-name">三菱UFJ－eMAXIS Slim 全世界株式</div>
+            <div class="s-name">eMAXIS Slim 全世界株式（オール・カントリー）</div>
             <div class="s-price up">35,154 <span style="font-size:0.8rem;">+0.70%</span></div>
         </div>
         <div class="s-box">
-            <div class="s-name">三菱UFJ－eMAXIS Slim 米国株式</div>
-            <div class="s-price up">40,213 <span style="font-size:0.8rem;">+1.03%</span></div>
+            <div class="s-name">日経平均株価（代表値）</div>
+            <div class="s-price up">38,850 <span style="font-size:0.8rem;">+1.12%</span></div>
         </div>
     </div>
 
     <div class="post-section">
         <div class="tab-row">
-            <button id="t-b" class="tab" onclick="setF('b')">オルカン派</button>
-            <button id="t-r" class="tab" onclick="setF('r')">S&P500派</button>
+            <button id="t-b" class="tab" onclick="setF('b')">インデックス派</button>
+            <button id="t-r" class="tab" onclick="setF('r')">個別株派</button>
         </div>
-        <textarea id="txt" placeholder="コメントを入力してください（ライブ連動中）"></textarea>
+        <textarea id="txt" placeholder="あなたの投資戦略を教えてください（ライブ連動中）"></textarea>
         <div class="post-footer">
             <button class="post-btn" onclick="send()">投稿する</button>
         </div>
@@ -122,7 +122,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Firebase設定
     const firebaseConfig = {
         apiKey: "AIzaSyAo9pTqdm-GQ9CleOcwg6nEYzNXebLCevc",
         authDomain: "nisa-board.firebaseapp.com",
@@ -137,7 +136,6 @@
     const db = getFirestore(app);
     const commentsCol = collection(db, "comments");
 
-    // 派閥選択
     window.currentSide = '';
     window.setF = (side) => {
         window.currentSide = side;
@@ -145,7 +143,6 @@
         document.getElementById('t-r').className = 'tab' + (side === 'r' ? ' active-r' : '');
     };
 
-    // 投稿機能
     window.send = async () => {
         const text = document.getElementById('txt').value;
         if (!window.currentSide || !text) { alert('派閥選択と入力をしてください'); return; }
@@ -158,26 +155,18 @@
                 disagree: 0
             });
             document.getElementById('txt').value = '';
-        } catch (e) { alert('エラーが発生しました。Firestoreの設定を確認してください。'); }
+        } catch (e) { alert('エラーが発生しました。'); }
     };
 
-   // リアクション更新機能（確実に数字を増やす設定）
     window.updateCount = async (id, field) => {
-        // 修正ポイント：doc(db, "comments", id) でドキュメントを特定
         const docRef = doc(db, "comments", id);
         try {
             await updateDoc(docRef, {
-                // increment(1) を使うことで、現在の値に+1する
                 [field]: increment(1)
             });
-            console.log("Count updated!");
-        } catch (e) {
-            console.error("Error updating document: ", e);
-            alert("リアクションの更新に失敗しました。ルールの設定を確認してください。");
-        }
+        } catch (e) { console.error(e); }
     };
 
-    // リアルタイム表示
     const q = query(commentsCol, orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
         const list = document.getElementById('list');
@@ -186,7 +175,7 @@
             const data = doc.data();
             const id = doc.id;
             const sideClass = data.side === 'b' ? 'line-b' : 'line-r';
-            const sideLabel = data.side === 'b' ? 'オルカン派' : 'S&P500派';
+            const sideLabel = data.side === 'b' ? 'インデックス派' : '個別株派';
             const sideColor = data.side === 'b' ? 'var(--y-blue)' : 'var(--y-red)';
             const time = data.createdAt ? data.createdAt.toDate().toLocaleString('ja-JP', {hour:'2-digit', minute:'2-digit'}) : '...';
 

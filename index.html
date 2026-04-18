@@ -5,32 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新NISA戦況板 | オルカン vs S&P500</title>
     <style>
-        :root { --y-blue: #188fff; --y-red: #ff333e; --y-bg: #f6f6f6; --y-border: #dcdcdc; --y-text: #333; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; background-color: var(--y-bg); color: var(--y-text); margin: 0; padding: 0; }
-        header { background: #fff; border-bottom: 2px solid #ff0033; padding: 8px 15px; display: flex; align-items: center; justify-content: space-between; }
-        header h1 { font-size: 1.1rem; margin: 0; font-weight: bold; }
-        .live-label { font-size: 0.7rem; color: #ff0033; border: 1px solid #ff0033; padding: 1px 5px; border-radius: 2px; font-weight: bold; }
-        .container { max-width: 750px; margin: 0 auto; background: #fff; min-height: 100vh; border-left: 1px solid var(--y-border); border-right: 1px solid var(--y-border); }
-        .stock-info { padding: 15px; border-bottom: 6px solid var(--y-bg); display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .s-box { border: 1px solid var(--y-border); padding: 10px; border-radius: 3px; }
-        .s-name { font-size: 0.75rem; color: #666; margin-bottom: 3px; font-weight: bold; }
-        .s-price { font-size: 1.5rem; font-weight: bold; font-family: 'Arial'; }
+        :root { 
+            --y-blue: #003399; /* 信頼感のある濃い青 */
+            --y-red: #cc0000;  /* 落ち着いた赤 */
+            --y-bg: #f0f2f5; 
+            --y-border: #e1e4e8; 
+            --y-text: #222; 
+        }
+        body { 
+            font-family: -apple-system, "Segoe UI", "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; 
+            background-color: var(--y-bg); 
+            color: var(--y-text); 
+            margin: 0; 
+            line-height: 1.6;
+        }
+        header { 
+            background: #fff; 
+            border-bottom: 3px solid var(--y-red); 
+            padding: 12px 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        header h1 { font-size: 1.2rem; margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+        .live-label { 
+            font-size: 0.65rem; color: #fff; background: var(--y-red); 
+            padding: 2px 8px; border-radius: 12px; font-weight: bold;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0.6; } }
+
+        .container { max-width: 680px; margin: 15px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        
+        .stock-info { padding: 20px; border-bottom: 8px solid var(--y-bg); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .s-box { background: #f8f9fa; border: 1px solid var(--y-border); padding: 12px; border-radius: 6px; }
+        .s-name { font-size: 0.7rem; color: #666; margin-bottom: 5px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .s-price { font-size: 1.4rem; font-weight: 800; font-family: 'Inter', Arial; letter-spacing: -0.5px; }
         .up { color: #cc0000; }
-        .post-section { padding: 20px; border-bottom: 1px solid var(--y-border); background: #fafafa; }
-        .tab-row { display: flex; gap: 8px; margin-bottom: 12px; }
-        .tab { border: 1px solid var(--y-border); background: #fff; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; border-radius: 2px; color: #666; }
-        .tab.active-b { border-color: var(--y-blue); color: var(--y-blue); font-weight: bold; background: #f0f8ff; }
-        .tab.active-r { border-color: var(--y-red); color: var(--y-red); font-weight: bold; background: #fff5f5; }
-        textarea { width: 100%; height: 60px; border: 1px solid var(--y-border); padding: 10px; box-sizing: border-box; font-size: 0.9rem; margin-bottom: 10px; }
+        
+        .post-section { padding: 24px; border-bottom: 1px solid var(--y-border); background: #fff; }
+        .tab-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab { 
+            flex: 1; border: 2px solid var(--y-border); background: #fff; padding: 10px; 
+            font-size: 0.85rem; cursor: pointer; border-radius: 6px; color: #666; font-weight: bold;
+            transition: all 0.2s;
+        }
+        .tab.active-b { border-color: var(--y-blue); color: var(--y-blue); background: #eef2ff; }
+        .tab.active-r { border-color: var(--y-red); color: var(--y-red); background: #fff5f5; }
+        
+        textarea { 
+            width: 100%; height: 80px; border: 1px solid var(--y-border); border-radius: 6px;
+            padding: 12px; box-sizing: border-box; font-size: 1rem; margin-bottom: 12px; outline: none;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { border-color: #999; }
         .post-footer { display: flex; justify-content: flex-end; }
-        .post-btn { background: #444; color: #fff; border: none; padding: 7px 30px; border-radius: 2px; font-size: 0.85rem; cursor: pointer; font-weight: bold; }
-        .comment-card { padding: 15px 20px; border-bottom: 1px solid var(--y-border); }
-        .c-meta { font-size: 0.75rem; margin-bottom: 8px; color: #666; display: flex; align-items: center; gap: 10px; }
-        .line-b { border-left: 4px solid var(--y-blue); }
-        .line-r { border-left: 4px solid var(--y-red); }
-        .c-text { font-size: 0.95rem; line-height: 1.5; color: #000; word-wrap: break-word; }
-        .react-row { margin-top: 12px; display: flex; gap: 10px; }
-        .react-btn { background: #fff; border: 1px solid #ccc; color: #333; font-size: 0.7rem; padding: 3px 10px; border-radius: 2px; cursor: pointer; }
+        .post-btn { 
+            background: #222; color: #fff; border: none; padding: 10px 40px; 
+            border-radius: 6px; font-size: 0.9rem; cursor: pointer; font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .post-btn:hover { opacity: 0.8; }
+
+        .comment-card { padding: 20px; border-bottom: 1px solid var(--y-border); transition: background 0.2s; }
+        .comment-card:hover { background: #fafafa; }
+        .line-b { border-left: 5px solid var(--y-blue); }
+        .line-r { border-left: 5px solid var(--y-red); }
+        .c-meta { font-size: 0.75rem; margin-bottom: 10px; color: #888; display: flex; align-items: center; gap: 12px; }
+        .c-text { font-size: 1rem; line-height: 1.6; color: #111; font-weight: 400; word-wrap: break-word; }
+        
+        .react-row { margin-top: 15px; display: flex; gap: 8px; }
+        .react-btn { 
+            background: #fff; border: 1px solid var(--y-border); color: #555; 
+            font-size: 0.75rem; padding: 5px 12px; border-radius: 4px; cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .react-btn:hover { background: #f0f0f0; border-color: #bbb; }
     </style>
 </head>
 <body>
@@ -62,14 +114,15 @@
             <button class="post-btn" onclick="send()">投稿する</button>
         </div>
     </div>
+
     <div id="list"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // スクショから取得した航さんのConfigを反映
+    // Firebase設定
     const firebaseConfig = {
         apiKey: "AIzaSyAo9pTqdm-GQ9CleOcwg6nEYzNXebLCevc",
         authDomain: "nisa-board.firebaseapp.com",
@@ -84,6 +137,7 @@
     const db = getFirestore(app);
     const commentsCol = collection(db, "comments");
 
+    // 派閥選択
     window.currentSide = '';
     window.setF = (side) => {
         window.currentSide = side;
@@ -91,6 +145,7 @@
         document.getElementById('t-r').className = 'tab' + (side === 'r' ? ' active-r' : '');
     };
 
+    // 投稿機能
     window.send = async () => {
         const text = document.getElementById('txt').value;
         if (!window.currentSide || !text) { alert('派閥選択と入力をしてください'); return; }
@@ -103,23 +158,56 @@
                 disagree: 0
             });
             document.getElementById('txt').value = '';
-        } catch (e) { alert('エラーが発生しました。Firestoreの設定（テストモード）を確認してください。'); }
+        } catch (e) { alert('エラーが発生しました。Firestoreの設定を確認してください。'); }
     };
 
+   // リアクション更新機能（確実に数字を増やす設定）
+    window.updateCount = async (id, field) => {
+        // 修正ポイント：doc(db, "comments", id) でドキュメントを特定
+        const docRef = doc(db, "comments", id);
+        try {
+            await updateDoc(docRef, {
+                // increment(1) を使うことで、現在の値に+1する
+                [field]: increment(1)
+            });
+            console.log("Count updated!");
+        } catch (e) {
+            console.error("Error updating document: ", e);
+            alert("リアクションの更新に失敗しました。ルールの設定を確認してください。");
+        }
+    };
+
+    // リアルタイム表示
     const q = query(commentsCol, orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
         const list = document.getElementById('list');
         list.innerHTML = '';
         snapshot.forEach((doc) => {
             const data = doc.data();
+            const id = doc.id;
             const sideClass = data.side === 'b' ? 'line-b' : 'line-r';
             const sideLabel = data.side === 'b' ? 'オルカン派' : 'S&P500派';
-            const sideColor = data.side === 'b' ? '#188fff' : '#ff333e';
+            const sideColor = data.side === 'b' ? 'var(--y-blue)' : 'var(--y-red)';
             const time = data.createdAt ? data.createdAt.toDate().toLocaleString('ja-JP', {hour:'2-digit', minute:'2-digit'}) : '...';
 
             const div = document.createElement('div');
             div.className = `comment-card ${sideClass}`;
-            div.innerHTML = `<div class="c-meta"><span style="color:${sideColor}; font-weight:bold;">${sideLabel}</span><span class="c-id">匿名投資家</span><span>${time}</span></div><div class="c-text">${data.text}</div><div class="react-row"><button class="react-btn">そう思う <span class="count">${data.agree || 0}</span></button><button class="react-btn">そう思わない <span class="count">${data.disagree || 0}</span></button></div>`;
+            div.innerHTML = `
+                <div class="c-meta">
+                    <span style="color:${sideColor}; font-weight:bold;">${sideLabel}</span>
+                    <span class="c-id">匿名投資家</span>
+                    <span>${time}</span>
+                </div>
+                <div class="c-text">${data.text}</div>
+                <div class="react-row">
+                    <button class="react-btn" onclick="updateCount('${id}', 'agree')">
+                        👍 そう思う <span class="count">${data.agree || 0}</span>
+                    </button>
+                    <button class="react-btn" onclick="updateCount('${id}', 'disagree')">
+                        👎 そう思わない <span class="count">${data.disagree || 0}</span>
+                    </button>
+                </div>
+            `;
             list.appendChild(div);
         });
     });
